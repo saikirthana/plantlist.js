@@ -1,0 +1,162 @@
+PlantList.js
+
+import React, { useEffect, useState } from 'react';
+
+const PlantList = () => {
+    const [plants, setPlants] = useState([]);
+
+    useEffect(() => {
+        fetch('/api/plants')
+            .then(res => res.json())
+            .then(data => setPlants(data));
+    }, []);
+
+    return (
+        <div>
+            <h2>Available Plants</h2>
+            <ul>
+                {plants.map(plant => (
+                    <li key={plant._id}>
+                        {plant.name} - {plant.price} INR
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+};
+
+PlantForm.js
+
+import React, { useState } from 'react';
+
+const PlantForm = () => {
+    const [name, setName] = useState('');
+    const [price, setPrice] = useState('');
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        fetch('/api/plants', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, price })
+        })
+        .then(() => {
+            setName('');
+            setPrice('');
+        });
+    };
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <label>
+                Plant Name:
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+            </label>
+            <label>
+                Price:
+                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required />
+            </label>
+            <button type="submit">Add Plant</button>
+        </form>
+    );
+};
+
+export default PlantForm;
+
+plantModel.js
+
+const mongoose = require('mongoose');
+
+const plantSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    price: { type: Number, required: true }
+});
+
+module.exports = mongoose.model('Plant', plantSchema);
+
+plantRoute.js
+const express = require('express');
+const Plant = require('../models/plantModel');
+
+const router = express.Router();
+
+router.get('/plants', async (req, res) => {
+    const plants = await Plant.find();
+    res.json(plants);
+});
+
+router.post('/plants', async (req, res) => {
+    const newPlant = new Plant(req.body);
+    await newPlant.save();
+    res.status(201).json(newPlant);
+});
+
+module.exports = router;
+
+App.css
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  text-align: center;
+  color: #4CAF50;
+}
+
+h2 {
+  color: #4CAF50;
+  margin-left: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 20px;
+}
+
+label {
+  margin: 10px 0 5px;
+}
+
+input {
+  margin-bottom: 10px;
+  padding: 8px;
+  width: 200px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin-left: 20px;
+}
+
+li {
+  background: white;
+  margin: 5px 0;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+
